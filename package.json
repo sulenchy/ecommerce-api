@@ -4,6 +4,7 @@
   "description": "The backend of an e-commerce system",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon node server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
