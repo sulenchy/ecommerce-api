@@ -4,7 +4,8 @@ var dotenv = require('dotenv');
 
 dotenv.config()
 
-var connection = mysql.createConnection({
+var connection = mysql.createPool({
+    connectionLimit: 10,
     host: 'localhost',
     user: 'root',
     password: process.env.DB_PASSWORD,
@@ -12,12 +13,17 @@ var connection = mysql.createConnection({
     insecureAuth: true
 });
 
-connection.connect((err, result) => {
-    if(err) {
-        console.log('mysql err', err)
-    } else{
-        console.log('mysql connected',result);
-    }
-});
+let db = {};
+db.all = () => {
 
-module.exports = connection;
+    return new Promise((resolve, reject) => {
+        connection.query('select * from product', (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+};
+
+module.exports = db;
