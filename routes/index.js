@@ -94,6 +94,25 @@ router.get('/products/inDepartment/:department_id', async(req, res, next) => {
     }
 })
 
+router.get('/products/search/t', async(req, res, next) => {
+    try{
+        //queries params
+        const query_string = req.query.query_string;
+        let result = await db.search_product_by_name_desc(query_string);
+        res.status(200).json({
+            count: result.length,
+            result
+        })
+    }
+    catch(exception){
+        res.status(400).json({
+            code: "PRD_02",
+            status: 400,
+            message: exception,
+          })
+    }
+})
+
 
 
 module.exports = router;
