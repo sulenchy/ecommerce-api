@@ -53,5 +53,16 @@ db.product_category_id = (cat_id) => {
     })
 }
 
+db.product_department_id = (depart_id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from product where product_id in (select product_id from product_category where category_id in (select category_id from category where department_id = ${depart_id}))`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
 
 module.exports = db;
