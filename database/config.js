@@ -64,5 +64,16 @@ db.product_department_id = (depart_id) => {
     })
 }
 
+db.search_product_by_name_desc = (query_string) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from product where name like '%${query_string}%' or description like '%${query_string}%' `, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
 
 module.exports = db;
