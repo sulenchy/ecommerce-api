@@ -14,7 +14,7 @@ var connection = mysql.createPool({
 });
 
 let db = {};
-db.all = (page, limit) => {
+db.products = (page, limit) => {
     if(page === undefined || page < 1){
         page = 0;
     }
@@ -22,7 +22,6 @@ db.all = (page, limit) => {
         limit = 20;
     }
     return new Promise((resolve, reject) => {
-        console.log('=======>', `select * from product limit ${limit} offset ${limit * page}`)
         connection.query(`select * from product limit ${limit} offset ${limit * page}`, (err, result) => {
             if(err){
                 return reject(err);
@@ -31,5 +30,28 @@ db.all = (page, limit) => {
         })
     })
 };
+
+db.product_by_id = (product_id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from product where product_id = ${product_id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+};
+
+db.product_category_id = (cat_id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from product_category where category_id=${cat_id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
 
 module.exports = db;
