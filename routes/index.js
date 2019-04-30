@@ -56,6 +56,25 @@ router.get('/products/:product_id', async(req, res, next) => {
 })
 
 
+router.get('/products/inCategory/:category_id', async(req, res, next) => {
+    try{
+        //queries params
+        const product_id = req.params.category_id;
+        let result = await db.product_category_id(product_id);
+        res.status(200).json({
+            count: result.length,
+            result
+        })
+    }
+    catch(exception){
+        res.status(400).json({
+            code: "PRD_02",
+            status: 400,
+            message: exception,
+          })
+    }
+})
+
 
 
 module.exports = router;

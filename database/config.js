@@ -44,7 +44,7 @@ db.product_by_id = (product_id) => {
 
 db.product_category_id = (cat_id) => {
     return new Promise((resolve, reject) => {
-        connection.query(`select * from product_category where category_id=${cat_id}`, (err, result) => {
+        connection.query(`select * from product where product_id in (select product_id from product_category where category_id=${cat_id})`, (err, result) => {
             if(err){
                 return reject(err);
             }
