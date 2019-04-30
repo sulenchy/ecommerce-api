@@ -14,10 +14,16 @@ var connection = mysql.createPool({
 });
 
 let db = {};
-db.all = () => {
-
+db.all = (page, limit) => {
+    if(page === undefined || page < 1){
+        page = 0;
+    }
+    if(limit === undefined){
+        limit = 20;
+    }
     return new Promise((resolve, reject) => {
-        connection.query('select * from product', (err, result) => {
+        console.log('=======>', `select * from product limit ${limit} offset ${limit * page}`)
+        connection.query(`select * from product limit ${limit} offset ${limit * page}`, (err, result) => {
             if(err){
                 return reject(err);
             }
