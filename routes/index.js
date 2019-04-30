@@ -2,10 +2,20 @@ const express = require('express');
 const router = express.Router()
 const db = require('../database/config');
 
-// gets all products
+/**
+ * @description - gets all products
+ * 
+ * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.get('/products', async(req, res, next) => {
     try{
-        let result = await db.all();
+        //queries params
+        const page = req.query.page;
+        const limit = req.query.limit;
+        
+        let result = await db.all(page,limit);
         res.status(200).json({
             count: result.length,
             rows: result
