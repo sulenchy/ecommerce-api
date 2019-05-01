@@ -53,9 +53,31 @@ db.product_category_id = (cat_id) => {
     })
 }
 
+db.get_shopping_cart_by_id = (id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from shopping_cart where item_id=${id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
 db.product_department_id = (depart_id) => {
     return new Promise((resolve, reject) => {
         connection.query(`select * from product where product_id in (select product_id from product_category where category_id in (select category_id from category where department_id = ${depart_id}))`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+db.add_product_to_shopping_cart = (cart_id, product_id, attributes_of_product, quantity, buy_now) => {
+    console.log('dfghrtghik');
+    return new Promise((resolve, reject) => {
+        connection.query(`insert into shopping_cart(cart_id, product_id, attributes, quantity, buy_now, added_on) values(${cart_id},${product_id},'${attributes_of_product}',${quantity},${buy_now},Now())`, (err, result) => {
             if(err){
                 return reject(err);
             }
