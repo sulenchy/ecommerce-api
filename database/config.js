@@ -101,6 +101,7 @@ db.get_customer_by_id = (id) => {
             if(err){
                 return reject(err);
             }
+            delete result[0]["password"];
             return resolve(result);
         })
     })
@@ -112,14 +113,52 @@ db.get_customer_by_email = (email) => {
             if(err){
                 return reject(err);
             }
+            delete result[0]["password"];
             return resolve(result);
         })
     })
 }
 
+
+// updates name, day_phone, eve_phone,mob_phone
+db.update_customer_phone = (id,name, email,day_phone, eve_phone,mob_phone) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`update customer set name='${name}', email='${email}', day_phone='${day_phone}', eve_phone='${eve_phone}', mob_phone='${mob_phone}' where customer_id=${id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
+// updates name, day_phone, eve_phone,mob_phone
+db.update_customer_address = (id,addr1, addr2,city, region,postal_code) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`update customer set address_1='${addr1}', address_2='${addr2}', city='${city}', region='${region}', postal_code='${postal_code}' where customer_id=${id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+// updates name, day_phone, eve_phone,mob_phone
+db.update_customer_credit_card = (id,credit_card) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`update customer set credit_card='${credit_card}' where customer_id=${id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
+
 db.search_product_by_name_desc = (query_string) => {
     return new Promise((resolve, reject) => {
-        connection.query(`select * from product where name like '%${query_string}%' or description like '%${query_string}%' `, (err, result) => {
+        connection.query(`select * from product where name like '%${query_string}%' or description like '%${query_string}%'`, (err, result) => {
             if(err){
                 return reject(err);
             }

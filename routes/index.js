@@ -4,7 +4,7 @@ const  jwt  =  require('jsonwebtoken');
 const  bcrypt  =  require('bcryptjs'); 
 
 const db = require('../database/config');
-// const { accessToken } = require('../helper/checkToken');
+const checkToken = require('../helper/checkToken');
 
 /**
  * @description - gets all products
@@ -184,6 +184,80 @@ router.post('/customers/login', async(req,res,next) => {
             })
         }
         
+    } catch(exception) {
+        res.status(400).json({
+            code: "usr_02",
+            status: 400,
+            message: exception
+          })
+    }
+})
+
+router.put('/customer', checkToken.checkToken, async(req,res,next) => {
+    try{
+        const customer_id = req.decoded.id;
+        const email = req.body.email;
+        const name = req.body.name;
+        const day_phone = req.body.day_phone;
+        const eve_phone = req.body.eve_phone;
+        const mob_phone = req.body.mob_phone;
+        let result = await db.update_customer_phone(customer_id, name,email,day_phone,eve_phone, mob_phone);
+        if(result.affectedRows === 1){
+            result = await db.get_customer_by_id(customer_id);
+            res.status(200).json(
+            {
+                result
+            })
+        }
+    } catch(exception) {
+        res.status(400).json({
+            code: "usr_02",
+            status: 400,
+            message: exception
+          })
+    }
+})
+
+router.put('/customers/address', checkToken.checkToken, async(req,res,next) => {
+    try{
+        const customer_id = req.decoded.id;
+        const address1 = req.body.address1;
+        const address2 = req.body.address2;
+        const city = req.body.city;
+        const region = req.body.region;
+        const postal_code = req.body.postal_code;
+        let result = await db.update_customer_address(customer_id,address1,address2,city, region, postal_code);
+        if(result.affectedRows === 1){
+            result = await db.get_customer_by_id(customer_id);
+            
+            res.status(200).json(
+            {
+                result
+            })
+        }
+    } catch(exception) {
+        res.status(400).json({
+            code: "usr_02",
+            status: 400,
+            message: exception
+          })
+    }
+})
+
+
+router.put('/customers/creditCard', checkToken.checkToken, async(req,res,next) => {
+    try{
+        const customer_id = req.decoded.id;
+        const credit_card = req.body.credit_card;
+        let result = await db.update_customer_credit_card(customer_id,credit_card);
+        if(result.affectedRows === 1){
+            result = await db.get_customer_by_id(customer_id);
+            
+            res.status(200).json(
+            {
+                result
+            })
+        }
     } catch(exception) {
         res.status(400).json({
             code: "usr_02",
