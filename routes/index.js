@@ -122,9 +122,8 @@ router.post('/shoppingcart/add', async(req,res,next) => {
         const buy_now = req.body.buy_now;
         let result = await db.add_product_to_shopping_cart(cart_id,product_id,attributes,quantity,buy_now);
         result = await db.get_shopping_cart_by_id(result.insertId);
-        res.status(201).json({
-            result
-        })
+        res.status(201).json(
+            result)
     } catch(exception) {
         res.status(400).json({
             code: "PRD_02",

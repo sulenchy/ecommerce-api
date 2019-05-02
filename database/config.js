@@ -55,7 +55,7 @@ db.product_category_id = (cat_id) => {
 
 db.get_shopping_cart_by_id = (id) => {
     return new Promise((resolve, reject) => {
-        connection.query(`select * from shopping_cart where item_id=${id}`, (err, result) => {
+        connection.query(`select item_id, name, attributes, price, quantity, (quantity * price) as sub_total, secondTable.product_id from (select name, price, product_id from product where product_id in (select product_id from shopping_cart where item_id=${id})) as firstTable inner join (select * from shopping_cart where item_id=${id}) as secondTable on firstTable.product_id = secondTable.product_id`, (err, result) => {
             if(err){
                 return reject(err);
             }
@@ -75,7 +75,6 @@ db.product_department_id = (depart_id) => {
     })
 }
 db.add_product_to_shopping_cart = (cart_id, product_id, attributes_of_product, quantity, buy_now) => {
-    console.log('dfghrtghik');
     return new Promise((resolve, reject) => {
         connection.query(`insert into shopping_cart(cart_id, product_id, attributes, quantity, buy_now, added_on) values(${cart_id},${product_id},'${attributes_of_product}',${quantity},${buy_now},Now())`, (err, result) => {
             if(err){
