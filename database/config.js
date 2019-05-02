@@ -84,6 +84,38 @@ db.add_product_to_shopping_cart = (cart_id, product_id, attributes_of_product, q
         })
     })
 }
+db.register_customer = ( name, email, password) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`insert into customer(name, email, password) values('${name}', '${email}', '${password}')`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
+db.get_customer_by_id = (id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from customer where customer_id = ${id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
+db.get_customer_by_email = (email) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from customer where email = '${email}'`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
 
 db.search_product_by_name_desc = (query_string) => {
     return new Promise((resolve, reject) => {

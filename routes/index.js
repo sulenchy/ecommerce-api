@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router()
+const  jwt  =  require('jsonwebtoken');
+const  bcrypt  =  require('bcryptjs'); 
+
 const db = require('../database/config');
+// const { accessToken } = require('../helper/checkToken');
 
 /**
  * @description - gets all products
@@ -127,6 +131,62 @@ router.post('/shoppingcart/add', async(req,res,next) => {
     } catch(exception) {
         res.status(400).json({
             code: "PRD_02",
+            status: 400,
+            message: exception
+          })
+    }
+})
+
+
+const  accessToken = (customerId) =>{
+    return jwt.sign({ id: customerId }, 'hgjhn', {
+        expiresIn:  '24h'
+    });
+}
+
+router.post('/customers', async(req,res,next) => {
+    try{
+        const name = req.body.name;
+        const email = req.body.email;
+        const password = bcrypt.hashSync(req.body.password);
+        let result = await db.register_customer(name, email, password);
+        const token = accessToken(result.insertId);
+        result = await db.get_customer_by_id(result.insertId)
+        res.status(201).json(
+            {
+                result,
+                accessToken: token,
+                expiredIn: '24h'
+            })
+    } catch(exception) {
+        res.status(400).json({
+            code: "usr_02",
+            status: 400,
+            message: exception
+          })
+    }
+})
+router.post('/customers/login', async(req,res,next) => {
+    try{
+        const email = req.body.email;
+        const password = req.body.password;
+        let result = await db.get_customer_by_email(email);
+        if(!bcrypt.compareSync(password, result[0].password)){
+            return res.status(401).send('Password not valid!');
+        }
+        else {
+            const token = accessToken(result[0].customer_id);
+        res.status(200).json(
+            {
+                result,
+                accessToken: token,
+                expiredIn: '24h'
+            })
+        }
+        
+    } catch(exception) {
+        res.status(400).json({
+            code: "usr_02",
             status: 400,
             message: exception
           })
