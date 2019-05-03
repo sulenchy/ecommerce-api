@@ -6,7 +6,8 @@ const stripe = require("stripe")("sk_test_lomdOfxbm7QDgZWvR82UhV6D");
 
 const db = require('../database/config');
 const checkToken = require('../helper/checkToken');
-const createStripeToken = require('../helper/createStripeToke');
+const sendMail = require('../helper/sendMail')
+
 
 /**
  * @description - gets all products routes
@@ -198,6 +199,36 @@ router.post('/customers', async(req,res,next) => {
 })
 
 /**
+ * @description - create new order
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
+router.post('/orders', checkToken.checkToken, async(req,res,next) => {
+    try{
+        const total_amount = req.body.total_amount;
+        const customer_id = req.decoded.id;
+        const status = 1;
+        const tax_id = req.body.tax_id;
+        let result = await db.create_order(total_amount, status, tax_id);
+        const order_id = result.insertId
+        result = await db.get_order_by_id(order_id)
+        const customer = await db.get_customer_by_id(customer_id);
+        sendMail(customer[0].email, order_id);
+        res.status(201).json(
+            {
+                result,
+            })
+    } catch(exception) {
+        res.status(400).json({
+            code: "usr_02",
+            status: 400,
+            message: exception
+          })
+    }
+})
+
+/**
  * @description - login routes
  *  * @param req - request
  * @param res - response
@@ -334,7 +365,7 @@ router.post('/stripe/charge', async(req, res, next) => {
     const order_id = req.body.order_id;
     const description = req.body.description;
     try{
-        let result = stripe.charges.create({
+        stripe.charges.create({
             amount: chargeAmount,
             currency: 'usd',
             metadata: {order_id},
@@ -348,6 +379,7 @@ router.post('/stripe/charge', async(req, res, next) => {
                     message: "Error in the data submitted"
                 })
             }
+            sendMail()
             return res.status(201).json(
                     charge
                 )
