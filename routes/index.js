@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router()
 const  jwt  =  require('jsonwebtoken');
 const  bcrypt  =  require('bcryptjs'); 
+const stripe = require("stripe")("sk_test_lomdOfxbm7QDgZWvR82UhV6D");
 
 const db = require('../database/config');
 const checkToken = require('../helper/checkToken');
+const createStripeToken = require('../helper/createStripeToke');
 
 /**
- * @description - gets all products
+ * @description - gets all products routes
  * 
  * @param req - request
  * @param res - response
@@ -34,6 +36,13 @@ router.get('/products', async(req, res, next) => {
     }
 })
 
+
+/**
+ * @description - gets products by category route
+ * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.get('/products/inCategory/:category_id', async(req, res, next) => {
     try{
         //queries params
@@ -53,6 +62,13 @@ router.get('/products/inCategory/:category_id', async(req, res, next) => {
     }
 })
 
+
+/**
+ * @description - get products by department routes
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.get('/products/inDepartment/:department_id', async(req, res, next) => {
     try{
         //queries params
@@ -72,6 +88,12 @@ router.get('/products/inDepartment/:department_id', async(req, res, next) => {
     }
 })
 
+/**
+ * @description - search products routes
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.get('/products/search', async(req, res, next) => {
     try{
         //queries params
@@ -117,6 +139,14 @@ router.get('/products/:product_id', async(req, res, next) => {
     }
 })
 
+/**
+ * @description - add item to cart routes
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ * 
+ */
+
 router.post('/shoppingcart/add', async(req,res,next) => {
     try{
         const cart_id = req.body.cart_id;
@@ -138,19 +168,19 @@ router.post('/shoppingcart/add', async(req,res,next) => {
 })
 
 
-const  accessToken = (customerId) =>{
-    return jwt.sign({ id: customerId }, 'hgjhn', {
-        expiresIn:  '24h'
-    });
-}
-
+/**
+ * @description - add new customer routes
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.post('/customers', async(req,res,next) => {
     try{
         const name = req.body.name;
         const email = req.body.email;
         const password = bcrypt.hashSync(req.body.password);
         let result = await db.register_customer(name, email, password);
-        const token = accessToken(result.insertId);
+        const token = checkToken.accessToken(result.insertId);
         result = await db.get_customer_by_id(result.insertId)
         res.status(201).json(
             {
@@ -166,6 +196,13 @@ router.post('/customers', async(req,res,next) => {
           })
     }
 })
+
+/**
+ * @description - login routes
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.post('/customers/login', async(req,res,next) => {
     try{
         const email = req.body.email;
@@ -175,7 +212,7 @@ router.post('/customers/login', async(req,res,next) => {
             return res.status(401).send('Password not valid!');
         }
         else {
-            const token = accessToken(result[0].customer_id);
+            const token = checkToken.accessToken(result[0].customer_id);
         res.status(200).json(
             {
                 result,
@@ -193,6 +230,12 @@ router.post('/customers/login', async(req,res,next) => {
     }
 })
 
+/**
+ * @description - update customer's phone numbers routes
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.put('/customer', checkToken.checkToken, async(req,res,next) => {
     try{
         const customer_id = req.decoded.id;
@@ -218,6 +261,13 @@ router.put('/customer', checkToken.checkToken, async(req,res,next) => {
     }
 })
 
+
+/**
+ * @description - update customer's address route
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.put('/customers/address', checkToken.checkToken, async(req,res,next) => {
     try{
         const customer_id = req.decoded.id;
@@ -244,7 +294,12 @@ router.put('/customers/address', checkToken.checkToken, async(req,res,next) => {
     }
 })
 
-
+/**
+ * @description - update customer's credit card info route
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
 router.put('/customers/creditCard', checkToken.checkToken, async(req,res,next) => {
     try{
         const customer_id = req.decoded.id;
@@ -267,5 +322,42 @@ router.put('/customers/creditCard', checkToken.checkToken, async(req,res,next) =
     }
 })
 
+/**
+ * @description - checkout route
+ *  * @param req - request
+ * @param res - response
+ * @param next - 
+ */
+router.post('/stripe/charge', async(req, res, next) => {
+    const token = createStripeToken;
+    const chargeAmount = req.body.chargeAmount;
+    try{
+        let result = stripe.charge.create({
+            amount: chargeAmount,
+            currency: 'usd',
+            source: token
+        }, (err, charge) => {
+            if(err){
+                return res.status(422).json({
+                    status: 422,
+                    code: 'STP_01',
+                    message: "Error in the data submitted"
+                })
+            }
+            console.log(charge);
+        })
+        res.status(201).json(
+            {
+                result
+            })
+    }
+    catch(exception){
+        res.status(400).json({
+            code: "usr_02",
+            status: 400,
+            message: exception
+          })
+    }
+})
 
 module.exports = router;
