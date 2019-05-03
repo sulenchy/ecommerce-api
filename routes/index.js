@@ -329,12 +329,16 @@ router.put('/customers/creditCard', checkToken.checkToken, async(req,res,next) =
  * @param next - 
  */
 router.post('/stripe/charge', async(req, res, next) => {
-    const token = createStripeToken;
     const chargeAmount = req.body.chargeAmount;
+    const token = req.body.stripeToken;
+    const order_id = req.body.order_id;
+    const description = req.body.description;
     try{
-        let result = stripe.charge.create({
+        let result = stripe.charges.create({
             amount: chargeAmount,
             currency: 'usd',
+            metadata: {order_id},
+            description: description,
             source: token
         }, (err, charge) => {
             if(err){
@@ -344,12 +348,11 @@ router.post('/stripe/charge', async(req, res, next) => {
                     message: "Error in the data submitted"
                 })
             }
-            console.log(charge);
+            return res.status(201).json(
+                    charge
+                )
         })
-        res.status(201).json(
-            {
-                result
-            })
+        
     }
     catch(exception){
         res.status(400).json({

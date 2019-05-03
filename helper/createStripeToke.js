@@ -20,7 +20,7 @@ const createStripeToken = () => {
                     message: 'Token failed to be created'
                 })
             }
-
+            console.log('token in createStripeToken ====> ',token)
             return token
         }
         catch(exception){

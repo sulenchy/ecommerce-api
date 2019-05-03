@@ -41,8 +41,15 @@ If you need to update `npm`, you can make it using `npm`! Cool right? After runn
     $ cd ecommerce-api
     $ npm install
 
-## Running the project
+## Database migrate
+    - goto to mysql
+    - run `create database ecommerceApiDB`
+    - run `use ecommerceApiDB`
+    - run `source ./database/tshirtshop.sql`
+    
 
+## Running the project
+    Note: Migrate the database using your terminal before you run `npm start`
     $ npm start
 
 ## Simple build for production
