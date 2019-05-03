@@ -4,7 +4,8 @@ var dotenv = require('dotenv');
 
 dotenv.config()
 
-var connection = mysql.createPool({
+// create a pool of database conncetions
+let connection = mysql.createPool({
     connectionLimit: 10,
     host: 'localhost',
     user: 'root',
@@ -14,6 +15,12 @@ var connection = mysql.createPool({
 });
 
 let db = {};
+
+/**
+ * @description - selects item from product table
+ * @param {*} page - the page number
+ * @param {*} limit - the number of items to return per page
+ */
 db.products = (page, limit) => {
     if(page === undefined || page < 1){
         page = 0;
@@ -31,6 +38,10 @@ db.products = (page, limit) => {
     })
 };
 
+/**
+ * @description - gets an item by product_id
+ * @param {*} product_id - The id of the product
+ */
 db.product_by_id = (product_id) => {
     return new Promise((resolve, reject) => {
         connection.query(`select * from product where product_id = ${product_id}`, (err, result) => {
@@ -42,6 +53,11 @@ db.product_by_id = (product_id) => {
     })
 };
 
+
+/**
+ * @description - gets items based on a given category
+ * @param {*} cat_id - the id of the category
+ */
 db.product_category_id = (cat_id) => {
     return new Promise((resolve, reject) => {
         connection.query(`select * from product where product_id in (select product_id from product_category where category_id=${cat_id})`, (err, result) => {
@@ -53,6 +69,10 @@ db.product_category_id = (cat_id) => {
     })
 }
 
+/**
+ * @description - gets items from shopping cart based on id
+ * @param {*} id - the id of the cart item
+ */
 db.get_shopping_cart_by_id = (id) => {
     return new Promise((resolve, reject) => {
         connection.query(`select item_id, name, attributes, price, quantity, (quantity * price) as sub_total, secondTable.product_id from (select name, price, product_id from product where product_id in (select product_id from shopping_cart where item_id=${id})) as firstTable inner join (select * from shopping_cart where item_id=${id}) as secondTable on firstTable.product_id = secondTable.product_id`, (err, result) => {
@@ -64,6 +84,10 @@ db.get_shopping_cart_by_id = (id) => {
     })
 }
 
+/**
+ * @description - gets items based on a given department
+ * @param {*} depart_id - the id of the department
+ */
 db.product_department_id = (depart_id) => {
     return new Promise((resolve, reject) => {
         connection.query(`select * from product where product_id in (select product_id from product_category where category_id in (select category_id from category where department_id = ${depart_id}))`, (err, result) => {
@@ -74,6 +98,15 @@ db.product_department_id = (depart_id) => {
         })
     })
 }
+
+/**
+ * @description - adds new item to the product table
+ * @param {*} cart_id 
+ * @param {*} product_id 
+ * @param {*} attributes_of_product 
+ * @param {*} quantity 
+ * @param {*} buy_now 
+ */
 db.add_product_to_shopping_cart = (cart_id, product_id, attributes_of_product, quantity, buy_now) => {
     return new Promise((resolve, reject) => {
         connection.query(`insert into shopping_cart(cart_id, product_id, attributes, quantity, buy_now, added_on) values(${cart_id},${product_id},'${attributes_of_product}',${quantity},${buy_now},Now())`, (err, result) => {
@@ -84,6 +117,13 @@ db.add_product_to_shopping_cart = (cart_id, product_id, attributes_of_product, q
         })
     })
 }
+
+/**
+ * @description - creates new user or customer
+ * @param {*} name 
+ * @param {*} email 
+ * @param {*} password 
+ */
 db.register_customer = ( name, email, password) => {
     return new Promise((resolve, reject) => {
         connection.query(`insert into customer(name, email, password) values('${name}', '${email}', '${password}')`, (err, result) => {
@@ -95,6 +135,11 @@ db.register_customer = ( name, email, password) => {
     })
 }
 
+
+/**
+ * @description - gets customer by customer id
+ * @param {*} id 
+ */
 db.get_customer_by_id = (id) => {
     return new Promise((resolve, reject) => {
         connection.query(`select * from customer where customer_id = ${id}`, (err, result) => {
@@ -113,14 +158,21 @@ db.get_customer_by_email = (email) => {
             if(err){
                 return reject(err);
             }
-            delete result[0]["password"];
             return resolve(result);
         })
     })
 }
 
 
-// updates name, day_phone, eve_phone,mob_phone
+/**
+ * @description - updates the phone numbers of a given customer
+ * @param {*} id 
+ * @param {*} name 
+ * @param {*} email 
+ * @param {*} day_phone 
+ * @param {*} eve_phone 
+ * @param {*} mob_phone 
+ */
 db.update_customer_phone = (id,name, email,day_phone, eve_phone,mob_phone) => {
     return new Promise((resolve, reject) => {
         connection.query(`update customer set name='${name}', email='${email}', day_phone='${day_phone}', eve_phone='${eve_phone}', mob_phone='${mob_phone}' where customer_id=${id}`, (err, result) => {
@@ -132,7 +184,15 @@ db.update_customer_phone = (id,name, email,day_phone, eve_phone,mob_phone) => {
     })
 }
 
-// updates name, day_phone, eve_phone,mob_phone
+/**
+ * @description - Update the address of a given customer
+ * @param {*} id 
+ * @param {*} addr1 
+ * @param {*} addr2 
+ * @param {*} city 
+ * @param {*} region 
+ * @param {*} postal_code 
+ */
 db.update_customer_address = (id,addr1, addr2,city, region,postal_code) => {
     return new Promise((resolve, reject) => {
         connection.query(`update customer set address_1='${addr1}', address_2='${addr2}', city='${city}', region='${region}', postal_code='${postal_code}' where customer_id=${id}`, (err, result) => {
@@ -143,7 +203,12 @@ db.update_customer_address = (id,addr1, addr2,city, region,postal_code) => {
         })
     })
 }
-// updates name, day_phone, eve_phone,mob_phone
+
+/**
+ * @description - update the credit card info of a given customer
+ * @param {*} id 
+ * @param {*} credit_card 
+ */
 db.update_customer_credit_card = (id,credit_card) => {
     return new Promise((resolve, reject) => {
         connection.query(`update customer set credit_card='${credit_card}' where customer_id=${id}`, (err, result) => {
@@ -156,6 +221,10 @@ db.update_customer_credit_card = (id,credit_card) => {
 }
 
 
+/**
+ * @description - searches product using name or description of the product
+ * @param {*} query_string 
+ */
 db.search_product_by_name_desc = (query_string) => {
     return new Promise((resolve, reject) => {
         connection.query(`select * from product where name like '%${query_string}%' or description like '%${query_string}%'`, (err, result) => {

@@ -6,8 +6,14 @@ dotenv.config();
 
 
 const  expiresIn  =  24  *  60  *  60;
-const secret = process.env.secret;
+const secret = process.env.SECRET;
 
+/**
+ * @description - checks token sent for authentication
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 let checkToken = (req, res, next) => {
   let token = req.headers['x-access-token'] || req.headers['authorization'];
   // Express headers are auto converted to lowercase
@@ -17,7 +23,7 @@ let checkToken = (req, res, next) => {
   }
 
   if (token) {
-    jwt.verify(token, 'hgjhn', (err, decoded) => {
+    jwt.verify(token, secret, (err, decoded) => {
       if (err) {
         return res.status(401).json({
           success: false,
@@ -40,8 +46,12 @@ let checkToken = (req, res, next) => {
   }
 };
 
+/**
+ * @description - signs the token sent
+ * @param {*} customerId 
+ */
 const  accessToken = (customerId) =>{
-    return jwt.sign({ id: customerId }, SECRET_KEY, {
+    return jwt.sign({ id: customerId }, secret, {
         expiresIn:  expiresIn
     });
 }  
