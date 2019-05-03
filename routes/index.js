@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router()
 const  jwt  =  require('jsonwebtoken');
+const { check, validationResult } = require('express-validator/check');
 const  bcrypt  =  require('bcryptjs'); 
 const stripe = require("stripe")("sk_test_lomdOfxbm7QDgZWvR82UhV6D");
 
 const db = require('../database/config');
 const checkToken = require('../helper/checkToken');
-const sendMail = require('../helper/sendMail')
+const sendMail = require('../helper/sendMail');
+const validate = require('../helper/validate');
 
 
 /**
@@ -148,8 +150,16 @@ router.get('/products/:product_id', async(req, res, next) => {
  * 
  */
 
-router.post('/shoppingcart/add', async(req,res,next) => {
+router.post('/shoppingcart/add', validate.validate_new_shopping_cart, async(req,res,next) => {
     try{
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ 
+                "status": 422,
+                "code": "SPC_02",
+                errors: errors.array() 
+            });
+        }
         const cart_id = req.body.cart_id;
         const product_id = req.body.product_id;
         const attributes = req.body.attributes;
@@ -161,9 +171,9 @@ router.post('/shoppingcart/add', async(req,res,next) => {
             result)
     } catch(exception) {
         res.status(400).json({
-            code: "PRD_02",
+            code: "SPC_01",
             status: 400,
-            message: exception
+            message: 'Shopping cart cannot be added'
           })
     }
 })
@@ -175,10 +185,19 @@ router.post('/shoppingcart/add', async(req,res,next) => {
  * @param res - response
  * @param next - 
  */
-router.post('/customers', async(req,res,next) => {
+router.post('/customers', validate.validate_customer_register, async(req,res,next) => {
     try{
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ 
+                "status": 422,
+                "code": "USR_02",
+                errors: errors.array() 
+            });
+        }
         const name = req.body.name;
         const email = req.body.email;
+        console.log(checkEmail, '==========>');
         const password = bcrypt.hashSync(req.body.password);
         let result = await db.register_customer(name, email, password);
         const token = checkToken.accessToken(result.insertId);
@@ -193,7 +212,7 @@ router.post('/customers', async(req,res,next) => {
         res.status(400).json({
             code: "usr_02",
             status: 400,
-            message: exception
+            message: 'Customer cannot be added'
           })
     }
 })
@@ -204,8 +223,17 @@ router.post('/customers', async(req,res,next) => {
  * @param res - response
  * @param next - 
  */
-router.post('/orders', checkToken.checkToken, async(req,res,next) => {
+router.post('/orders',validate.validate_orders, checkToken.checkToken, async(req,res,next) => {
     try{
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ 
+                "status": 422,
+                "code": "ORD_01",
+                errors: errors.array() 
+            });
+        }
+        
         const total_amount = req.body.total_amount;
         const customer_id = req.decoded.id;
         const status = 1;
@@ -221,9 +249,9 @@ router.post('/orders', checkToken.checkToken, async(req,res,next) => {
             })
     } catch(exception) {
         res.status(400).json({
-            code: "usr_02",
+            code: "ORD_02",
             status: 400,
-            message: exception
+            message: 'Order cannot be inserted'
           })
     }
 })
@@ -234,13 +262,25 @@ router.post('/orders', checkToken.checkToken, async(req,res,next) => {
  * @param res - response
  * @param next - 
  */
-router.post('/customers/login', async(req,res,next) => {
+router.post('/customers/login', validate.validate_customer_login, async(req,res,next) => {
     try{
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ 
+                "status": 422,
+                "code": "USR_02",
+                errors: errors.array() 
+            });
+        }
         const email = req.body.email;
         const password = req.body.password;
         let result = await db.get_customer_by_email(email);
         if(!bcrypt.compareSync(password, result[0].password)){
-            return res.status(401).send('Password not valid!');
+            return res.status(401).json({
+                status: 401,
+                code: 'USR_01',
+                message: 'Password is invalid'
+            });
         }
         else {
             const token = checkToken.accessToken(result[0].customer_id);
@@ -254,9 +294,9 @@ router.post('/customers/login', async(req,res,next) => {
         
     } catch(exception) {
         res.status(400).json({
-            code: "usr_02",
+            code: "USR_01",
             status: 400,
-            message: exception
+            message: 'User cannot be found'
           })
     }
 })
@@ -267,8 +307,16 @@ router.post('/customers/login', async(req,res,next) => {
  * @param res - response
  * @param next - 
  */
-router.put('/customer', checkToken.checkToken, async(req,res,next) => {
+router.put('/customer', validate.validate_cust_basic_info ,checkToken.checkToken,  async(req,res,next) => {
     try{
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ 
+                "status": 422,
+                "code": "USR_02",
+                errors: errors.array() 
+            });
+        }
         const customer_id = req.decoded.id;
         const email = req.body.email;
         const name = req.body.name;
@@ -285,9 +333,9 @@ router.put('/customer', checkToken.checkToken, async(req,res,next) => {
         }
     } catch(exception) {
         res.status(400).json({
-            code: "usr_02",
             status: 400,
-            message: exception
+            code: "USR_10",
+            message: 'Unexpected error occured while updating customer info'
           })
     }
 })
@@ -299,8 +347,16 @@ router.put('/customer', checkToken.checkToken, async(req,res,next) => {
  * @param res - response
  * @param next - 
  */
-router.put('/customers/address', checkToken.checkToken, async(req,res,next) => {
+router.put('/customers/address', validate.validate_cust_address_info, checkToken.checkToken, async(req,res,next) => {
     try{
+        const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+        return res.status(422).json({ 
+            "status": 422,
+            "code": "USR_02",
+            errors: errors.array()
+    });
+  }
         const customer_id = req.decoded.id;
         const address1 = req.body.address1;
         const address2 = req.body.address2;
@@ -318,9 +374,9 @@ router.put('/customers/address', checkToken.checkToken, async(req,res,next) => {
         }
     } catch(exception) {
         res.status(400).json({
-            code: "usr_02",
             status: 400,
-            message: exception
+            code: "USR_10",
+            message: 'Unexpected error occured while updating address info'
           })
     }
 })
@@ -331,14 +387,21 @@ router.put('/customers/address', checkToken.checkToken, async(req,res,next) => {
  * @param res - response
  * @param next - 
  */
-router.put('/customers/creditCard', checkToken.checkToken, async(req,res,next) => {
+router.put('/customers/creditCard',validate.validate_cust_credit_card, checkToken.checkToken, async(req,res,next) => {
     try{
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ 
+                "status": 422,
+                "code": "USR_02",
+                errors: errors.array()
+        });
+        }
         const customer_id = req.decoded.id;
         const credit_card = req.body.credit_card;
         let result = await db.update_customer_credit_card(customer_id,credit_card);
         if(result.affectedRows === 1){
             result = await db.get_customer_by_id(customer_id);
-            
             res.status(200).json(
             {
                 result
@@ -346,9 +409,9 @@ router.put('/customers/creditCard', checkToken.checkToken, async(req,res,next) =
         }
     } catch(exception) {
         res.status(400).json({
-            code: "usr_02",
             status: 400,
-            message: exception
+            code: "USR_10",
+            message: 'Unexpected error occured while updating credit card'
           })
     }
 })
@@ -388,7 +451,7 @@ router.post('/stripe/charge', async(req, res, next) => {
     }
     catch(exception){
         res.status(400).json({
-            code: "usr_02",
+            code: "STP_02",
             status: 400,
             message: exception
           })
