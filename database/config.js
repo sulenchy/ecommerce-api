@@ -135,7 +135,54 @@ db.register_customer = ( name, email, password) => {
     })
 }
 
+/**
+ * @description - creates new order for a user
+ * @param {*} total_amount 
+ * @param {*} status 
+ * @param {*} tax_id 
+ */
+db.create_order = ( total_amount, status, tax_id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`insert into orders(total_amount, created_on, status, tax_id) values('${total_amount}', Now() , ${status}, ${tax_id})`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
 
+/**
+ * @description - gets customer by customer id
+ * @param {*} id 
+ */
+db.get_order_by_id = (id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from orders where order_id = ${id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            return resolve(result);
+        })
+    })
+}
+
+
+/**
+ * @description - gets customer by customer id
+ * @param {*} id 
+ */
+db.get_customer_by_id = (id) => {
+    return new Promise((resolve, reject) => {
+        connection.query(`select * from customer where customer_id = ${id}`, (err, result) => {
+            if(err){
+                return reject(err);
+            }
+            delete result[0]["password"];
+            return resolve(result);
+        })
+    })
+}
 /**
  * @description - gets customer by customer id
  * @param {*} id 

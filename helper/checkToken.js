@@ -40,7 +40,7 @@ let checkToken = (req, res, next) => {
     return res.status(401).json({
       success: false,
       status: 401,
-      code: "AUT02",
+      code: "AUT01",
       message: 'Auth token is not supplied'
     });
   }
