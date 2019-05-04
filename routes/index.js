@@ -197,7 +197,6 @@ router.post('/customers', validate.validate_customer_register, async(req,res,nex
         }
         const name = req.body.name;
         const email = req.body.email;
-        console.log(checkEmail, '==========>');
         const password = bcrypt.hashSync(req.body.password);
         let result = await db.register_customer(name, email, password);
         const token = checkToken.accessToken(result.insertId);

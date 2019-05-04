@@ -50,6 +50,7 @@ If you need to update `npm`, you can make it using `npm`! Cool right? After runn
 
 ## Running the project
     Note: Migrate the database using your terminal before you run `npm start`
+    $ git checkout master
     $ npm start
 
 ## Simple build for production
@@ -70,3 +71,4 @@ If you need to update `npm`, you can make it using `npm`! Cool right? After runn
 | PUT /customer | update customer's phone numbers routes |
 | PUT /customers/address | update customer's address route  |
 | PUT /customers/creditCard | update customer's credit card info route  |
+| POST /stripe/charge | checkout route  |
