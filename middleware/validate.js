@@ -44,7 +44,8 @@ const validate_cust_credit_card = [
 ];
 const validate_orders = [
     check('total_amount', 'total_amount field does not exist').exists(),
-    check('tax_id', 'tax_id field does not exist').exists()
+    check('tax_id', 'tax_id field does not exist').exists(),
+    check('shipping_id', 'shipping_id field does not exist').exists()
 ];
 
 const validate_new_shopping_cart = [
