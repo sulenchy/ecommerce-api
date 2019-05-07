@@ -39,7 +39,6 @@ class Shopping_Cart {
               })
         }
     }
-
 }
 
 module.exports = Shopping_Cart
