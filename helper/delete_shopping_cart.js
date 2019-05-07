@@ -6,7 +6,7 @@ const connection = require('../database/config')
  */
 const delete_shopping_cart = () => {
     return new Promise((resolve, reject) =>{
-        connection.query(`delete from shopping_cart where datediff(Now(), added_on) >= 2`, (err, result) => {
+        connection.query(`delete from shopping_cart where datediff(Now(), added_on) >= 1`, (err, result) => {
             if(err){
                 return reject(err);
             }
