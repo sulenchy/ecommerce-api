@@ -10,18 +10,9 @@ chai.use(chaiHttp);
 
 
 describe('Customer controller ', () => {
-    it('should return default route message', (done) => {
-        chai.request(app)
-        .get('/')
-        .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.be.a('object');
-            res.body.message.should.be.eql('Welcome to Ecommerce API !!!')
-            done();
-        });
-    })
-    it('should not login customer', () => {
+    it('should not login customer', (done) => {
 
+        done()
     })
     it('should login customer', () => {
 
